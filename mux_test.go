@@ -2,7 +2,6 @@ package beaver
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,12 +12,12 @@ func TestMux(t *testing.T) {
 	mux := NewMux()
 
 	mux.Get("/foo", func(c *Context) error {
-		fmt.Fprint(c.ResponseWriter, "foo")
+		c.String(http.StatusOK, "foo")
 		return nil
 	})
 
 	mux.Get("/foo/bar", func(c *Context) error {
-		fmt.Fprint(c.ResponseWriter, "bar")
+		c.String(http.StatusOK, "bar")
 		return nil
 	})
 
