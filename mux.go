@@ -9,7 +9,8 @@ type Mux struct {
 
 func NewMux() *Mux {
 	return &Mux{
-		routes: make(map[string]route),
+		routes:       make(map[string]route),
+		errorHandler: DefaultErrorHandler,
 	}
 }
 
@@ -27,7 +28,7 @@ func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err := route.handlerFunc(w, r)
 	if err != nil {
-		m.errorHandler(err)
+		m.errorHandler(err, w)
 	}
 }
 

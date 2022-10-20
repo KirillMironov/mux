@@ -1,6 +1,7 @@
 package beaver
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,12 +22,18 @@ func TestMux(t *testing.T) {
 		return nil
 	})
 
-	makeRequest(t, "/foo", http.MethodGet, "foo", mux)
+	mux.Get("/error", func(w http.ResponseWriter, r *http.Request) error {
+		return errors.New("error")
+	})
 
-	makeRequest(t, "/foo/bar", http.MethodGet, "bar", mux)
+	makeRequest(t, "/foo", http.MethodGet, "foo", http.StatusOK, mux)
+
+	makeRequest(t, "/foo/bar", http.MethodGet, "bar", http.StatusOK, mux)
+
+	makeRequest(t, "/error", http.MethodGet, "", http.StatusInternalServerError, mux)
 }
 
-func makeRequest(t *testing.T, path, method, expectedBody string, mux *Mux) {
+func makeRequest(t *testing.T, path, method, expectedBody string, expectedStatusCode int, mux *Mux) {
 	t.Helper()
 
 	rec := httptest.NewRecorder()
@@ -41,5 +48,9 @@ func makeRequest(t *testing.T, path, method, expectedBody string, mux *Mux) {
 
 	if string(body) != expectedBody {
 		t.Fatalf("expected %q, got %q", expectedBody, string(body))
+	}
+
+	if rec.Code != expectedStatusCode {
+		t.Fatalf("expected status code %d, got %d", expectedStatusCode, rec.Code)
 	}
 }

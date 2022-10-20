@@ -5,7 +5,7 @@ import "net/http"
 type (
 	HandlerFunc func(http.ResponseWriter, *http.Request) error
 
-	ErrorHandler func(error)
+	ErrorHandler func(error, http.ResponseWriter)
 
 	route struct {
 		method      string
@@ -13,3 +13,7 @@ type (
 		handlerFunc HandlerFunc
 	}
 )
+
+var DefaultErrorHandler = func(_ error, w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
+}
