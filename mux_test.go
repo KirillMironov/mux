@@ -12,17 +12,17 @@ import (
 func TestMux(t *testing.T) {
 	mux := NewMux()
 
-	mux.Get("/foo", func(w http.ResponseWriter, r *http.Request) error {
-		fmt.Fprint(w, "foo")
+	mux.Get("/foo", func(c *Context) error {
+		fmt.Fprint(c.ResponseWriter, "foo")
 		return nil
 	})
 
-	mux.Get("/foo/bar", func(w http.ResponseWriter, r *http.Request) error {
-		fmt.Fprint(w, "bar")
+	mux.Get("/foo/bar", func(c *Context) error {
+		fmt.Fprint(c.ResponseWriter, "bar")
 		return nil
 	})
 
-	mux.Get("/error", func(w http.ResponseWriter, r *http.Request) error {
+	mux.Get("/error", func(c *Context) error {
 		return errors.New("error")
 	})
 

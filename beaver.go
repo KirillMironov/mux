@@ -3,7 +3,7 @@ package beaver
 import "net/http"
 
 type (
-	HandlerFunc func(http.ResponseWriter, *http.Request) error
+	HandlerFunc func(*Context) error
 
 	ErrorHandler func(error, http.ResponseWriter)
 

@@ -26,7 +26,12 @@ func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := route.handlerFunc(w, r)
+	var context = Context{
+		Request:        r,
+		ResponseWriter: w,
+	}
+
+	err := route.handlerFunc(&context)
 	if err != nil {
 		m.errorHandler(err, w)
 	}
