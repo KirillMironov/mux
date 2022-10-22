@@ -3,44 +3,61 @@ package beaver
 import "net/http"
 
 type Mux struct {
-	routes       map[string]route
+	handler      *http.ServeMux
 	errorHandler ErrorHandler
 }
 
 func NewMux() *Mux {
 	return &Mux{
-		routes:       make(map[string]route),
+		handler:      http.DefaultServeMux,
 		errorHandler: DefaultErrorHandler,
 	}
 }
 
 func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	route, ok := m.routes[r.RequestURI]
-	if !ok {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	if route.method != r.Method {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	var context = Context{
-		request: r,
-		writer:  w,
-	}
-
-	err := route.handlerFunc(&context)
-	if err != nil {
-		m.errorHandler(err, w)
-	}
+	m.handler.ServeHTTP(w, r)
 }
 
 func (m *Mux) Get(path string, hf HandlerFunc) {
-	m.routes[path] = route{
-		http.MethodGet,
-		path,
-		hf,
-	}
+	m.wrap(http.MethodGet, path, hf)
+}
+
+func (m *Mux) Head(path string, hf HandlerFunc) {
+	m.wrap(http.MethodHead, path, hf)
+}
+
+func (m *Mux) Post(path string, hf HandlerFunc) {
+	m.wrap(http.MethodPost, path, hf)
+}
+
+func (m *Mux) Put(path string, hf HandlerFunc) {
+	m.wrap(http.MethodPut, path, hf)
+}
+
+func (m *Mux) Patch(path string, hf HandlerFunc) {
+	m.wrap(http.MethodPatch, path, hf)
+}
+
+func (m *Mux) Delete(path string, hf HandlerFunc) {
+	m.wrap(http.MethodDelete, path, hf)
+}
+
+func (m *Mux) Connect(path string, hf HandlerFunc) {
+	m.wrap(http.MethodConnect, path, hf)
+}
+
+func (m *Mux) Options(path string, hf HandlerFunc) {
+	m.wrap(http.MethodOptions, path, hf)
+}
+
+func (m *Mux) Trace(path string, hf HandlerFunc) {
+	m.wrap(http.MethodTrace, path, hf)
+}
+
+func (m *Mux) wrap(method, path string, hf HandlerFunc) {
+	m.handler.Handle(path, errorHandlerFunc{
+		handlerFunc:  hf,
+		errorHandler: m.errorHandler,
+		method:       method,
+	})
 }
