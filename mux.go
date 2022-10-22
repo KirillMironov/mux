@@ -55,7 +55,7 @@ func (m *Mux) Trace(path string, hf HandlerFunc) {
 }
 
 func (m *Mux) wrap(method, path string, hf HandlerFunc) {
-	m.handler.Handle(path, errorHandlerFunc{
+	m.handler.Handle(path, &errorHandlerFunc{
 		handlerFunc:  hf,
 		errorHandler: m.errorHandler,
 		method:       method,

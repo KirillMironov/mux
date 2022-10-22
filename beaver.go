@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func (ehf errorHandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (ehf *errorHandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != ehf.method {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
