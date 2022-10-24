@@ -5,6 +5,7 @@ import "net/http"
 type Mux struct {
 	handler      *http.ServeMux
 	errorHandler ErrorHandler
+	basePath     string
 }
 
 func NewMux() *Mux {
@@ -16,6 +17,14 @@ func NewMux() *Mux {
 
 func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.handler.ServeHTTP(w, r)
+}
+
+func (m *Mux) Group(basePath string) *Mux {
+	return &Mux{
+		handler:      m.handler,
+		errorHandler: m.errorHandler,
+		basePath:     m.basePath + basePath,
+	}
 }
 
 func (m *Mux) Get(path string, hf HandlerFunc) {
@@ -55,7 +64,7 @@ func (m *Mux) Trace(path string, hf HandlerFunc) {
 }
 
 func (m *Mux) wrap(method, path string, hf HandlerFunc) {
-	m.handler.Handle(path, &errorHandlerFunc{
+	m.handler.Handle(m.basePath+path, &errorHandlerFunc{
 		handlerFunc:  hf,
 		errorHandler: m.errorHandler,
 		method:       method,

@@ -25,8 +25,8 @@ func (ehf *errorHandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var context = &Context{
-		request: r,
-		writer:  w,
+		Request: r,
+		Writer:  w,
 	}
 
 	err := ehf.handlerFunc(context)

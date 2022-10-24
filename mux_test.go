@@ -11,25 +11,46 @@ import (
 func TestMux(t *testing.T) {
 	mux := NewMux()
 
-	mux.Get("/foo", func(c *Context) error {
-		c.String(http.StatusOK, "foo")
-		return nil
-	})
+	mux.Get("/foo", foo)
 
-	mux.Get("/foo/bar", func(c *Context) error {
-		c.String(http.StatusOK, "bar")
-		return nil
-	})
-
-	mux.Get("/error", func(c *Context) error {
-		return errors.New("error")
-	})
+	mux.Get("/foo/bar", bar)
 
 	makeRequest(t, "/foo", http.MethodGet, "foo", http.StatusOK, mux)
 
-	makeRequest(t, "/foo/bar", http.MethodGet, "bar", http.StatusOK, mux)
+	makeRequest(t, "/foo/bar", http.MethodGet, "", http.StatusInternalServerError, mux)
+}
 
-	makeRequest(t, "/error", http.MethodGet, "", http.StatusInternalServerError, mux)
+func TestGroup(t *testing.T) {
+	mux := NewMux()
+
+	api := mux.Group("/api")
+	{
+		api.Get("/foo", foo)
+		api.Get("/foo/bar", bar)
+
+		v1 := api.Group("/v1")
+		{
+			v1.Get("/foo", foo)
+			v1.Get("/foo/bar", bar)
+		}
+	}
+
+	makeRequest(t, "/api/foo", http.MethodGet, "foo", http.StatusOK, mux)
+
+	makeRequest(t, "/api/foo/bar", http.MethodGet, "", http.StatusInternalServerError, mux)
+
+	makeRequest(t, "/api/v1/foo", http.MethodGet, "foo", http.StatusOK, mux)
+
+	makeRequest(t, "/api/v1/foo/bar", http.MethodGet, "", http.StatusInternalServerError, mux)
+}
+
+func foo(c *Context) error {
+	c.String(http.StatusOK, "foo")
+	return nil
+}
+
+func bar(*Context) error {
+	return errors.New("bar")
 }
 
 func makeRequest(t *testing.T, path, method, expectedBody string, expectedStatusCode int, mux *Mux) {
