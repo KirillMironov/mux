@@ -44,6 +44,19 @@ func TestGroup(t *testing.T) {
 	makeRequest(t, "/api/v1/foo/bar", http.MethodGet, "", http.StatusInternalServerError, mux)
 }
 
+func TestErrorHandler(t *testing.T) {
+	mux := NewMux()
+
+	mux.SetErrorHandler(func(_ error, w http.ResponseWriter) {
+		w.WriteHeader(http.StatusNoContent)
+		_, _ = w.Write([]byte("error"))
+	})
+
+	mux.Get("/foo/bar", bar)
+
+	makeRequest(t, "/foo/bar", http.MethodGet, "error", http.StatusNoContent, mux)
+}
+
 func foo(c *Context) error {
 	c.String(http.StatusOK, "foo")
 	return nil

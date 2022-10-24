@@ -11,15 +11,15 @@ type (
 
 	ErrorHandler func(error, http.ResponseWriter)
 
-	errorHandlerFunc struct {
+	wrapper struct {
 		handlerFunc  HandlerFunc
 		errorHandler ErrorHandler
 		method       string
 	}
 )
 
-func (ehf *errorHandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != ehf.method {
+func (wrapper *wrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != wrapper.method {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
@@ -29,8 +29,8 @@ func (ehf *errorHandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Writer:  w,
 	}
 
-	err := ehf.handlerFunc(context)
+	err := wrapper.handlerFunc(context)
 	if err != nil {
-		ehf.errorHandler(err, w)
+		wrapper.errorHandler(err, w)
 	}
 }

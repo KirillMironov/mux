@@ -10,13 +10,17 @@ type Mux struct {
 
 func NewMux() *Mux {
 	return &Mux{
-		handler:      http.DefaultServeMux,
+		handler:      new(http.ServeMux),
 		errorHandler: DefaultErrorHandler,
 	}
 }
 
 func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.handler.ServeHTTP(w, r)
+}
+
+func (m *Mux) SetErrorHandler(eh ErrorHandler) {
+	m.errorHandler = eh
 }
 
 func (m *Mux) Group(basePath string) *Mux {
@@ -64,7 +68,7 @@ func (m *Mux) Trace(path string, hf HandlerFunc) {
 }
 
 func (m *Mux) wrap(method, path string, hf HandlerFunc) {
-	m.handler.Handle(m.basePath+path, &errorHandlerFunc{
+	m.handler.Handle(m.basePath+path, &wrapper{
 		handlerFunc:  hf,
 		errorHandler: m.errorHandler,
 		method:       method,
