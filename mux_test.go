@@ -2,7 +2,6 @@ package beaver
 
 import (
 	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,9 +14,9 @@ func TestMux(t *testing.T) {
 
 	mux.Get("/foo/bar", bar)
 
-	makeRequest(t, "/foo", http.MethodGet, "foo", http.StatusOK, mux)
+	checkBody(t, mux, http.MethodGet, "/foo", "foo", http.StatusOK)
 
-	makeRequest(t, "/foo/bar", http.MethodGet, "", http.StatusInternalServerError, mux)
+	checkBody(t, mux, http.MethodGet, "/foo/bar", "", http.StatusInternalServerError)
 }
 
 func TestGroup(t *testing.T) {
@@ -35,13 +34,13 @@ func TestGroup(t *testing.T) {
 		}
 	}
 
-	makeRequest(t, "/api/foo", http.MethodGet, "foo", http.StatusOK, mux)
+	checkBody(t, mux, http.MethodGet, "/api/foo", "foo", http.StatusOK)
 
-	makeRequest(t, "/api/foo/bar", http.MethodGet, "", http.StatusInternalServerError, mux)
+	checkBody(t, mux, http.MethodGet, "/api/foo/bar", "", http.StatusInternalServerError)
 
-	makeRequest(t, "/api/v1/foo", http.MethodGet, "foo", http.StatusOK, mux)
+	checkBody(t, mux, http.MethodGet, "/api/v1/foo", "foo", http.StatusOK)
 
-	makeRequest(t, "/api/v1/foo/bar", http.MethodGet, "", http.StatusInternalServerError, mux)
+	checkBody(t, mux, http.MethodGet, "/api/v1/foo/bar", "", http.StatusInternalServerError)
 }
 
 func TestErrorHandler(t *testing.T) {
@@ -54,7 +53,7 @@ func TestErrorHandler(t *testing.T) {
 
 	mux.Get("/foo/bar", bar)
 
-	makeRequest(t, "/foo/bar", http.MethodGet, "error", http.StatusNoContent, mux)
+	checkBody(t, mux, http.MethodGet, "/foo/bar", "error", http.StatusNoContent)
 }
 
 func foo(c *Context) error {
@@ -66,7 +65,7 @@ func bar(*Context) error {
 	return errors.New("bar")
 }
 
-func makeRequest(t *testing.T, path, method, expectedBody string, expectedStatusCode int, mux *Mux) {
+func checkBody(t *testing.T, mux *Mux, method, path, expectedBody string, expectedCode int) {
 	t.Helper()
 
 	rec := httptest.NewRecorder()
@@ -74,16 +73,11 @@ func makeRequest(t *testing.T, path, method, expectedBody string, expectedStatus
 
 	mux.ServeHTTP(rec, req)
 
-	body, err := io.ReadAll(rec.Body)
-	if err != nil {
-		t.Fatal(err)
+	if body := rec.Body.String(); body != expectedBody {
+		t.Errorf("expected body %q, got %q", expectedBody, body)
 	}
 
-	if string(body) != expectedBody {
-		t.Fatalf("expected %q, got %q", expectedBody, string(body))
-	}
-
-	if rec.Code != expectedStatusCode {
-		t.Fatalf("expected status code %d, got %d", expectedStatusCode, rec.Code)
+	if rec.Code != expectedCode {
+		t.Errorf("expected status code %d, got %d", expectedCode, rec.Code)
 	}
 }
