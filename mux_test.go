@@ -3,7 +3,6 @@ package beaver
 import (
 	"errors"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -14,9 +13,27 @@ func TestMux(t *testing.T) {
 
 	mux.Get("/foo/bar", bar)
 
-	checkBody(t, mux, http.MethodGet, "/foo", "foo", http.StatusOK)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/foo",
+		expected: expected{
+			statusCode:  http.StatusOK,
+			contentType: mimePlain,
+			body:        "foo",
+		},
+	}.run(t)
 
-	checkBody(t, mux, http.MethodGet, "/foo/bar", "", http.StatusInternalServerError)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/foo/bar",
+		expected: expected{
+			statusCode:  http.StatusInternalServerError,
+			contentType: "",
+			body:        "",
+		},
+	}.run(t)
 }
 
 func TestGroup(t *testing.T) {
@@ -34,13 +51,49 @@ func TestGroup(t *testing.T) {
 		}
 	}
 
-	checkBody(t, mux, http.MethodGet, "/api/foo", "foo", http.StatusOK)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/api/foo",
+		expected: expected{
+			statusCode:  http.StatusOK,
+			contentType: mimePlain,
+			body:        "foo",
+		},
+	}.run(t)
 
-	checkBody(t, mux, http.MethodGet, "/api/foo/bar", "", http.StatusInternalServerError)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/api/foo/bar",
+		expected: expected{
+			statusCode:  http.StatusInternalServerError,
+			contentType: "",
+			body:        "",
+		},
+	}.run(t)
 
-	checkBody(t, mux, http.MethodGet, "/api/v1/foo", "foo", http.StatusOK)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/api/v1/foo",
+		expected: expected{
+			statusCode:  http.StatusOK,
+			contentType: mimePlain,
+			body:        "foo",
+		},
+	}.run(t)
 
-	checkBody(t, mux, http.MethodGet, "/api/v1/foo/bar", "", http.StatusInternalServerError)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/api/v1/foo/bar",
+		expected: expected{
+			statusCode:  http.StatusInternalServerError,
+			contentType: "",
+			body:        "",
+		},
+	}.run(t)
 }
 
 func TestErrorHandler(t *testing.T) {
@@ -53,7 +106,16 @@ func TestErrorHandler(t *testing.T) {
 
 	mux.Get("/foo/bar", bar)
 
-	checkBody(t, mux, http.MethodGet, "/foo/bar", "error", http.StatusNoContent)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/foo/bar",
+		expected: expected{
+			statusCode:  http.StatusNoContent,
+			contentType: "",
+			body:        "error",
+		},
+	}.run(t)
 }
 
 func foo(c *Context) error {
@@ -63,21 +125,4 @@ func foo(c *Context) error {
 
 func bar(*Context) error {
 	return errors.New("bar")
-}
-
-func checkBody(t *testing.T, mux *Mux, method, path, expectedBody string, expectedCode int) {
-	t.Helper()
-
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(method, path, nil)
-
-	mux.ServeHTTP(rec, req)
-
-	if body := rec.Body.String(); body != expectedBody {
-		t.Errorf("expected body %q, got %q", expectedBody, body)
-	}
-
-	if rec.Code != expectedCode {
-		t.Errorf("expected status code %d, got %d", expectedCode, rec.Code)
-	}
 }

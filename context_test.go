@@ -2,7 +2,6 @@ package beaver
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -18,9 +17,27 @@ func TestContext_Status(t *testing.T) {
 		return nil
 	})
 
-	checkHeaders(t, mux, http.MethodGet, "/foo", "", "", http.StatusUnauthorized)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/foo",
+		expected: expected{
+			statusCode:  http.StatusUnauthorized,
+			contentType: "",
+			body:        "",
+		},
+	}.run(t)
 
-	checkHeaders(t, mux, http.MethodGet, "/bar", "", "", http.StatusOK)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/bar",
+		expected: expected{
+			statusCode:  http.StatusOK,
+			contentType: "",
+			body:        "",
+		},
+	}.run(t)
 }
 
 func TestContext_String(t *testing.T) {
@@ -36,9 +53,27 @@ func TestContext_String(t *testing.T) {
 		return nil
 	})
 
-	checkHeaders(t, mux, http.MethodGet, "/foo", "foo", mimePlain, http.StatusCreated)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/foo",
+		expected: expected{
+			statusCode:  http.StatusCreated,
+			contentType: mimePlain,
+			body:        "foo",
+		},
+	}.run(t)
 
-	checkHeaders(t, mux, http.MethodGet, "/bar", "", mimePlain, http.StatusNoContent)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/bar",
+		expected: expected{
+			statusCode:  http.StatusNoContent,
+			contentType: mimePlain,
+			body:        "",
+		},
+	}.run(t)
 }
 
 func TestContext_JSON(t *testing.T) {
@@ -54,28 +89,25 @@ func TestContext_JSON(t *testing.T) {
 		return nil
 	})
 
-	checkHeaders(t, mux, http.MethodGet, "/foo", "{\"foo\":\"bar\"}\n", mimeJSON, http.StatusCreated)
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/foo",
+		expected: expected{
+			statusCode:  http.StatusCreated,
+			contentType: mimeJSON,
+			body:        "{\"foo\":\"bar\"}\n",
+		},
+	}.run(t)
 
-	checkHeaders(t, mux, http.MethodGet, "/bar", "null\n", mimeJSON, http.StatusNoContent)
-}
-
-func checkHeaders(t *testing.T, mux *Mux, method, path, expectedBody, expectedContentType string, expectedCode int) {
-	t.Helper()
-
-	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(method, path, nil)
-
-	mux.ServeHTTP(rec, req)
-
-	if body := rec.Body.String(); body != expectedBody {
-		t.Errorf("expected body %q, got %q", expectedBody, body)
-	}
-
-	if contentType := rec.Header().Get("Content-Type"); contentType != expectedContentType {
-		t.Errorf("expected Content-Type %q, got %q", expectedContentType, contentType)
-	}
-
-	if rec.Code != expectedCode {
-		t.Errorf("expected status code %d, got %d", expectedCode, rec.Code)
-	}
+	testCase{
+		mux:    mux,
+		method: http.MethodGet,
+		path:   "/bar",
+		expected: expected{
+			statusCode:  http.StatusNoContent,
+			contentType: mimeJSON,
+			body:        "null\n",
+		},
+	}.run(t)
 }
