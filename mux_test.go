@@ -99,9 +99,8 @@ func TestGroup(t *testing.T) {
 func TestErrorHandler(t *testing.T) {
 	mux := NewMux()
 
-	mux.SetErrorHandler(func(_ error, w http.ResponseWriter) {
-		w.WriteHeader(http.StatusNoContent)
-		_, _ = w.Write([]byte("error"))
+	mux.SetErrorHandler(func(_ error, c *Context) {
+		c.String(http.StatusTeapot, "error")
 	})
 
 	mux.Get("/foo/bar", bar)
@@ -111,8 +110,8 @@ func TestErrorHandler(t *testing.T) {
 		method: http.MethodGet,
 		path:   "/foo/bar",
 		expected: expected{
-			statusCode:  http.StatusNoContent,
-			contentType: "",
+			statusCode:  http.StatusTeapot,
+			contentType: mimePlain,
 			body:        "error",
 		},
 	}.run(t)

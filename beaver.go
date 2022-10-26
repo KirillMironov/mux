@@ -2,14 +2,14 @@ package beaver
 
 import "net/http"
 
-var DefaultErrorHandler = func(_ error, w http.ResponseWriter) {
-	w.WriteHeader(http.StatusInternalServerError)
+var DefaultErrorHandler = func(_ error, c *Context) {
+	c.Status(http.StatusInternalServerError)
 }
 
 type (
 	HandlerFunc func(*Context) error
 
-	ErrorHandler func(error, http.ResponseWriter)
+	ErrorHandler func(error, *Context)
 
 	wrapper struct {
 		handlerFunc  HandlerFunc
@@ -31,6 +31,6 @@ func (wrapper *wrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err := wrapper.handlerFunc(context)
 	if err != nil {
-		wrapper.errorHandler(err, w)
+		wrapper.errorHandler(err, context)
 	}
 }
