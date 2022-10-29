@@ -1,6 +1,7 @@
 package beaver
 
 import (
+	"github.com/KirillMironov/beaver/binding"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -136,7 +137,10 @@ func TestContext_Bind(t *testing.T) {
 			Email:       "me",
 		}
 
-		context = &Context{Request: req}
+		context = &Context{
+			Request: req,
+			binder:  binding.NewBinder(),
+		}
 	)
 
 	err := context.Bind(&target)

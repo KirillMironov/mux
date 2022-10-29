@@ -11,9 +11,14 @@ type (
 
 	ErrorHandler func(error, *Context)
 
+	Binder interface {
+		Bind(request *http.Request, target any) error
+	}
+
 	wrapper struct {
 		handlerFunc  HandlerFunc
 		errorHandler ErrorHandler
+		binder       Binder
 		method       string
 	}
 )
@@ -27,6 +32,7 @@ func (wrapper *wrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var context = &Context{
 		Request: r,
 		Writer:  w,
+		binder:  wrapper.binder,
 	}
 
 	err := wrapper.handlerFunc(context)

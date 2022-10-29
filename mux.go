@@ -1,10 +1,14 @@
 package beaver
 
-import "net/http"
+import (
+	"github.com/KirillMironov/beaver/binding"
+	"net/http"
+)
 
 type Mux struct {
 	handler      *http.ServeMux
 	errorHandler ErrorHandler
+	binder       Binder
 	basePath     string
 }
 
@@ -12,6 +16,7 @@ func NewMux() *Mux {
 	return &Mux{
 		handler:      new(http.ServeMux),
 		errorHandler: DefaultErrorHandler,
+		binder:       binding.NewBinder(),
 	}
 }
 
@@ -27,6 +32,7 @@ func (m *Mux) Group(basePath string) *Mux {
 	return &Mux{
 		handler:      m.handler,
 		errorHandler: m.errorHandler,
+		binder:       m.binder,
 		basePath:     m.basePath + basePath,
 	}
 }
