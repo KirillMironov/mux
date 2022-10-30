@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestBind(t *testing.T) {
+func TestBinder_Bind(t *testing.T) {
 	type form struct {
 		Id          uint   `query:"id"`
 		Name        string `query:"name"`
