@@ -20,9 +20,9 @@ type Parser interface {
 func NewBinder() *Binder {
 	return &Binder{
 		parsers: []Parser{
-			&CookieParser{},
-			&HeaderParser{},
-			&QueryParser{},
+			new(CookieParser),
+			new(HeaderParser),
+			new(QueryParser),
 		},
 	}
 }
@@ -67,6 +67,8 @@ func (b *Binder) Bind(request *http.Request, target any) (err error) {
 			if err != nil {
 				return err
 			}
+
+			break
 		}
 	}
 
