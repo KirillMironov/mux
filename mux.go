@@ -28,6 +28,10 @@ func (m *Mux) SetErrorHandler(eh ErrorHandler) {
 	m.errorHandler = eh
 }
 
+func (m *Mux) SetBinder(b Binder) {
+	m.binder = b
+}
+
 func (m *Mux) Group(basePath string) *Mux {
 	return &Mux{
 		handler:      m.handler,
@@ -77,6 +81,7 @@ func (m *Mux) wrap(method, path string, hf HandlerFunc) {
 	m.handler.Handle(m.basePath+path, &wrapper{
 		handlerFunc:  hf,
 		errorHandler: m.errorHandler,
+		binder:       m.binder,
 		method:       method,
 	})
 }
