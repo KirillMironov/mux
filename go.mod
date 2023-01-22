@@ -1,3 +1,3 @@
-module github.com/KirillMironov/beaver
+module github.com/KirillMironov/mux
 
 go 1.19

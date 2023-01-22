@@ -1,4 +1,4 @@
-package beaver
+package mux
 
 import (
 	"encoding/json"

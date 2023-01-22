@@ -1,8 +1,9 @@
-package beaver
+package mux
 
 import (
-	"github.com/KirillMironov/beaver/binding"
 	"net/http"
+
+	"github.com/KirillMironov/mux/binding"
 )
 
 type Mux struct {
